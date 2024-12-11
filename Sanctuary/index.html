@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="style.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <title>Holy Bible Books</title>
+</head>
+<body>
+  <div>
+    <nav>
+      <ul>
+        <a href="">Home</a>
+        <a href="">Bible</a>
+        <a href="">Hope</a>
+        <a href="">Support</a>
+      </ul>
+    </nav>
+  </div>
+  <div>
+    <section class="hero">
+        <label>Select Chapter: </label>
+        <input type="number" id="chapterNumber" value="1" min="1">
+        <button id="fetchBooks">Get Books</button>
+    </section>
+  </div>
+  <div id="result"></div>
+  <div id="chapterContent"></div>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const apiKey = '62450a6101msh4972fcc407788bcp17c445jsnab6ac0589e9a'; // Replace with your actual API key
+    const apiHost = 'ajith-holy-bible.p.rapidapi.com';
+
+    const options = {
+      method: 'GET',
+      url: 'https://ajith-holy-bible.p.rapidapi.com/GetBooks',
+      headers: {
+        'x-rapidapi-key': apiKey,
+        'x-rapidapi-host': apiHost
+      }
+    };
+
+    document.getElementById('fetchBooks').addEventListener('click', async () => {
+      try {
+        const response = await axios.request(options);
+        const { The_Old_Testament, The_New_Testament } = response.data;
+
+        const oldTestamentBooks = The_Old_Testament.split(/[0-9]+\. /).filter(Boolean);
+        const newTestamentBooks = The_New_Testament.split(/[0-9]+\. /).filter(Boolean);
+
+        const createBookList = (books, testament) =>
+          books.map(book => `<li>${book} <button onclick="fetchChapter('${book}', 1)">Read Chapter 1</button></li>`).join('');
+
+        document.getElementById('result').innerHTML = `
+          <h2>Old Testament</h2>
+          <ul>${createBookList(oldTestamentBooks, 'old')}</ul>
+          <h2>New Testament</h2>
+          <ul>${createBookList(newTestamentBooks, 'new')}</ul>
+        `;
+      } catch (error) {
+        console.error('Error fetching books:', error);
+        document.getElementById('result').textContent = 'Failed to fetch data';
+      }
+    });
+  });
+
+  // Fetch chapter data from the API
+  async function fetchChapter(book, chapter) {
+    const options = {
+      method: 'GET',
+      url: 'https://ajith-holy-bible.p.rapidapi.com/GetChapter',
+      params: { Book: book, chapter },
+      headers: {
+        'x-rapidapi-key': '62450a6101msh4972fcc407788bcp17c445jsnab6ac0589e9a', // Replace with your actual API key
+        'x-rapidapi-host': 'ajith-holy-bible.p.rapidapi.com'
+      }
+    };
+
+    try {
+      const response = await axios.request(options);
+      const chapterData = response.data; // Correctly access the data from response
+      document.getElementById('chapterContent').innerHTML = `
+        <h3>${chapterData.Book} Chapter ${chapterData.Chapter}</h3>
+        <pre>${chapterData.Output}</pre> <!-- Display the chapter content -->
+      `;
+    } catch (error) {
+      console.error('Error fetching chapter:', error);
+      document.getElementById('chapterContent').textContent = 'Failed to fetch chapter';
+    }
+  }
+  </script>
+</body>
+</html>
